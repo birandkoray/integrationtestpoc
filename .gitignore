@@ -1,0 +1,10 @@
+**/.idea
+**/logs
+**/*.iml
+**/target/
+**/.mvn
+**/.settings
+**/.classpath
+**/.project
+**/.springBeans
+**/target-developer/
