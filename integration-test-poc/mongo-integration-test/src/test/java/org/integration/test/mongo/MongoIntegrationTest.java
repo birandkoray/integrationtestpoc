@@ -1,79 +1,60 @@
 package org.integration.test.mongo;
 
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBObject;
-import com.mongodb.client.MongoClients;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.IMongodConfig;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
+import com.mongodb.MongoClient;
 import org.integration.test.mongo.document.Person;
-import org.junit.jupiter.api.AfterEach;
+import org.integration.test.mongo.repository.PersonRepository;
+import org.integration.test.mongo.service.PersonService;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.util.SocketUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class MongoIntegrationTest {
 
-
-    private MongodExecutable mongodExecutable;
     private MongoTemplate mongoTemplate;
 
-    @Mock
-    private RestTemplate restTemplate;
+    @Autowired
+    private PersonService personService;
 
-    @AfterEach
-    void clean() {
-        mongodExecutable.stop();
-    }
+    @Autowired
+    private PersonRepository personRepository;
+
+    private static int randomPort;
+
+    private static String IP = "localhost";
+
+    private static String REST_PORT = "8085";
 
     @BeforeAll
     public static void setUpBeforeClass() {
-        System.setProperty("spring.data.mongodb.uri", "mongodb://localhost:27010");
+        randomPort = SocketUtils.findAvailableTcpPort();
+        System.setProperty("server.port", REST_PORT);
+        System.setProperty("spring.data.mongodb.port", String.valueOf(randomPort));
+        System.setProperty("spring.data.mongodb.host", "localhost");
         System.setProperty("spring.data.mongodb.auto-index-creation", "true");
     }
 
-    @BeforeEach
-    void setup() throws Exception {
-        String ip = "localhost";
-        int port = 27010;
-
-        IMongodConfig mongodConfig = new MongodConfigBuilder().version(Version.Main.PRODUCTION)
-                .net(new Net(ip, port, Network.localhostIsIPv6()))
-                .build();
-
-        MongodStarter starter = MongodStarter.getDefaultInstance();
-        mongodExecutable = starter.prepare(mongodConfig);
-        mongodExecutable.start();
-        mongoTemplate = new MongoTemplate(MongoClients.create("mongodb://" + ip + ":" + port), "test");
-    }
-
     @Test
-    void test() throws Exception {
+    @DisplayName("testRestSave")
+    void testRestSave() throws Exception {
         // given
-        DBObject objectToSave = BasicDBObjectBuilder.start()
-                .add("key", "value")
-                .get();
+        mongoTemplate = new MongoTemplate(new MongoClient(IP, randomPort), "test");
 
         // when
-        mongoTemplate.save(objectToSave, "collection");
-
-        final String baseUrl = "http://localhost:8080" + "/person-service/savePerson";
+        final String baseUrl = "http://localhost:" + REST_PORT + "/person-save/savePerson";
         URI uri = new URI(baseUrl);
 
         HttpHeaders headers = new HttpHeaders();
@@ -85,8 +66,24 @@ public class MongoIntegrationTest {
         restTemplate.postForEntity(uri, request, Void.class);
 
         // then
-        assertThat(mongoTemplate.findAll(DBObject.class, "person")).extracting("key")
-                .containsOnly("value");
+        assertThat(mongoTemplate.findAll(Person.class, "person").size() == 1);
     }
 
+    @Test
+    public void testBulkData() {
+        personService.saveAllBulkPerson();
+        assertThat(personRepository.findAll().size() == PersonService.BULK_SIZE);
+    }
+
+    @Test
+    public void testSave() {
+        // given
+        Person person = new Person("Omer2", "Celik2", "272");
+
+        //when
+        personService.savePerson(person);
+
+        // then
+        assertThat(personRepository.findAll().size() == 1);
+    }
 }

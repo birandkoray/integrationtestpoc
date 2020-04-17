@@ -5,6 +5,7 @@ import org.integration.test.mongo.repository.PersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +14,7 @@ import java.util.List;
 
 @Service
 public class PersonService {
+    public static final int BULK_SIZE = 50000;
 
     @Autowired
     private PersonRepository personRepository;
@@ -30,7 +32,7 @@ public class PersonService {
         throw new RuntimeException("RollBack yapsin diye throw edildi..");
     }
 
-    @Transactional
+    //@Transactional
     public void saveAllBulkPerson() {
         List<Person> personList = createDummyPersonList();
         long firstTime = System.currentTimeMillis();
@@ -54,7 +56,7 @@ public class PersonService {
 
     private List<Person> createDummyPersonList() {
         List<Person> personList = new ArrayList<>();
-        for (int i = 0; i < 500000; i++) {
+        for (int i = 0; i < BULK_SIZE; i++) {
             personList.add(new Person("Omer " + i, "Celik " + i, "26"));
         }
         return personList;
