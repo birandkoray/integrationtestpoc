@@ -9,46 +9,43 @@ import org.integration.test.kafka.deserializer.PersonDeserializer;
 import org.integration.test.kafka.deserializer.PersonSerializer;
 import org.integration.test.kafka.model.Employee;
 import org.integration.test.kafka.model.Person;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.Duration;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
-@ExtendWith(SpringExtension.class)
+@EmbeddedKafka(partitions = 1)
 public class KafkaIntegrationTest {
 
-    private static final String INPUT_TOPIC = "employee-topic--";
-    private static final String OUTPUT_TOPIC = "person-topic--";
+    private static final String INPUT_TOPIC = "employee-topic";
+    private static final String OUTPUT_TOPIC = "person-topic";
     private static final String GROUP_NAME = "embeddedKafkaApplication";
 
-    @ClassRule
-    public static EmbeddedKafkaRule embeddedKafka = new EmbeddedKafkaRule(1, true);
+    @Autowired
+    private EmbeddedKafkaBroker embeddedKafkaBroker;
 
-    @BeforeClass
-    public static void setup() {
-        System.setProperty("spring.cloud.stream.kafka.binder.brokers", embeddedKafka.getEmbeddedKafka().getBrokersAsString());
+    @BeforeAll
+    public static void setUpBeforeClass() {
+        System.setProperty("spring.cloud.stream.kafka.binder.brokers", "${spring.embedded.kafka.brokers}");
     }
 
     @Test
     public void testSendReceive() {
-        Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafka.getEmbeddedKafka());
+        Map<String, Object> senderProps = KafkaTestUtils.producerProps(embeddedKafkaBroker);
         senderProps.put("key.serializer", StringSerializer.class);
         senderProps.put("value.serializer", PersonSerializer.class);
         DefaultKafkaProducerFactory<String, Person> pf = new DefaultKafkaProducerFactory<>(senderProps);
@@ -59,7 +56,7 @@ public class KafkaIntegrationTest {
         template.setDefaultTopic(OUTPUT_TOPIC);
         template.sendDefault(person);
 
-        Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(GROUP_NAME, "false", embeddedKafka.getEmbeddedKafka());
+        Map<String, Object> consumerProps = new HashMap<>(KafkaTestUtils.consumerProps("consumer", "false", embeddedKafkaBroker));
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         consumerProps.put("key.deserializer", StringDeserializer.class);
         consumerProps.put("value.deserializer", PersonDeserializer.class);
@@ -71,6 +68,7 @@ public class KafkaIntegrationTest {
         consumer.commitSync();
 
         Employee employee = records.iterator().next().value();
+        System.err.println(employee.getNickName());
         assertThat(employee.getNickName()).isEqualTo(person.getName() + "-" + person.getSurname());
     }
 

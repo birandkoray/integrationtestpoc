@@ -8,7 +8,7 @@ spring:
         person-topic-in:
           destination: person-topic
           contentType: application/json
-          group: omercelik
+          group: allIntegrationGroupId
         employee-topic-out:
           destination: employee-topic
           contentType: application/json

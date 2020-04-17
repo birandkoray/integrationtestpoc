@@ -1,7 +1,7 @@
-package org.integration.test.kafka.producer;
+package org.integration.test.all.producer;
 
-import org.integration.test.kafka.model.Employee;
-import org.integration.test.kafka.stream.EmployeeStream;
+import org.integration.test.all.data.Employee;
+import org.integration.test.all.stream.EmployeeStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.MessageChannel;
@@ -13,7 +13,7 @@ public class EmployeeProducer {
     @Autowired
     private EmployeeStream employeeStream;
 
-    public void publishStudent(Employee employee) {
+    public void publishEmployee(Employee employee) {
         System.err.println("Employee basiliyor...");
         MessageChannel messageChannel = employeeStream.outboundEmployee();
         messageChannel.send(MessageBuilder.withPayload(employee).build());

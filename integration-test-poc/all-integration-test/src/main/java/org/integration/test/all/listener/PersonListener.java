@@ -1,9 +1,9 @@
-package org.integration.test.kafka.listener;
+package org.integration.test.all.listener;
 
-import org.integration.test.kafka.model.Employee;
-import org.integration.test.kafka.model.Person;
-import org.integration.test.kafka.producer.EmployeeProducer;
-import org.integration.test.kafka.stream.PersonStream;
+import org.integration.test.all.data.Employee;
+import org.integration.test.all.data.Person;
+import org.integration.test.all.producer.EmployeeProducer;
+import org.integration.test.all.stream.PersonStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.stereotype.Service;
