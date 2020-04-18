@@ -14,7 +14,6 @@ public class EmployeeProducer {
     private EmployeeStream employeeStream;
 
     public void publishEmployee(Employee employee) {
-        System.err.println("Employee basiliyor...");
         MessageChannel messageChannel = employeeStream.outboundEmployee();
         messageChannel.send(MessageBuilder.withPayload(employee).build());
     }
