@@ -8,7 +8,6 @@ import org.integration.test.all.factory.EmployeeFactory;
 import org.integration.test.all.producer.EmployeeProducer;
 import org.integration.test.all.repository.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,10 +18,6 @@ public class EmployeeService {
 
     @Autowired
     private EmployeeFactory employeeFactory;
-
-    @Autowired
-    private MongoTemplate mongoTemplate;
-
     @Autowired
     private EmployeeProducer employeeProducer;
 

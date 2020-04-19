@@ -6,14 +6,14 @@ spring:
           brokers: localhost:9092
       bindings:
         person-topic-in:
-          destination: person-topic
+          destination: person-topic-test
           contentType: application/json
           group: allIntegrationGroupId
         employee-topic-out:
-          destination: employee-topic
+          destination: employee-topic-test
           contentType: application/json
   data:
     mongodb:
-      port: 27017
       host: localhost
-      database: OmerDb
+      port: 4445
+      database: test
