@@ -11,20 +11,10 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 
 @Configuration
 @EnableMongoRepositories(basePackages = "org.integration.test.*")
-public class MongoDbConfiguration extends AbstractMongoClientConfiguration {
+public class MongoDbConfiguration {
 
     @Bean
     MongoTransactionManager transactionManager(MongoDbFactory dbFactory) {
         return new MongoTransactionManager(dbFactory);
-    }
-
-    @Override
-    public MongoClient mongoClient() {
-        return MongoClients.create("mongodb://localhost:27017/");
-    }
-
-    @Override
-    protected String getDatabaseName() {
-        return "OmerDb";
     }
 }

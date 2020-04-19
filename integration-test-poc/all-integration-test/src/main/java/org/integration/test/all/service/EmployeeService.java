@@ -1,5 +1,6 @@
 package org.integration.test.all.service;
 
+import org.integration.test.all.cache.EmployeeCache;
 import org.integration.test.all.data.Employee;
 import org.integration.test.all.data.Person;
 import org.integration.test.all.document.EmployeeDocument;
@@ -25,6 +26,9 @@ public class EmployeeService {
     @Autowired
     private EmployeeProducer employeeProducer;
 
+    @Autowired
+    EmployeeCache cache;
+
     public void savePerson(Person person) {
         Employee employee = employeeFactory.convertPersonToEmployeeData(person);
 
@@ -35,6 +39,7 @@ public class EmployeeService {
         employee.setObjectId(empDoc.getId());
         // employee datası cache'e yazilacak
         // cache.save(employee);
+        cache.getMap().put(empDoc.getId(), person);
 
         employeeProducer.publishEmployee(employee);
 

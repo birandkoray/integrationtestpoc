@@ -22,6 +22,6 @@ public class PersonListener {
         Employee employee = new Employee();
         employee.setNickName(person.getName() + "-" + person.getSurname());
         employee.setSalary(salary);
-        employeeProducer.publishStudent(employee);
+        employeeProducer.publishEmployee(employee);
     }
 }

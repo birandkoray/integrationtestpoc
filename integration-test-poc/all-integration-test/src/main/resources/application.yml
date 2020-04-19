@@ -12,3 +12,8 @@ spring:
         employee-topic-out:
           destination: employee-topic
           contentType: application/json
+  data:
+    mongodb:
+      port: 27017
+      host: localhost
+      database: OmerDb
