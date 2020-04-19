@@ -2,10 +2,13 @@ package org.integration.test.all;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.client.MongoClients;
+import org.integration.test.all.cache.EmployeeCache;
 import org.integration.test.all.data.Employee;
 import org.integration.test.all.data.Person;
 import org.integration.test.all.document.EmployeeDocument;
+import org.integration.test.all.service.EmployeeService;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @EmbeddedKafka(partitions = 1)
@@ -40,6 +42,17 @@ public class AllIntegration extends AbstractEmbeddedKafka {
 
     @Autowired
     private EmbeddedKafkaBroker embeddedKafkaBroker;
+
+    @Autowired
+    private EmployeeService employeeService;
+
+    @Autowired
+    private EmployeeCache employeeCache;
+
+    @BeforeEach
+    public void setupCache(){
+        employeeCache.getMap().clear();
+    }
 
     @BeforeAll
     public static void setUpBeforeClass() {
@@ -77,7 +90,16 @@ public class AllIntegration extends AbstractEmbeddedKafka {
                     }
                     return true;
                 }, "Id atanmamis document'lar bulunmakta. DB'ye kaydedilmemis olabilir"),
+                () -> assertEquals(1, employeeCache.getMap().size(), "Kayıt hazelcaste yazılmamış"),
                 () -> assertTrue(employee.getNickName().equals(person.getName() + "-" + person.getSurname()), "Kafka'ya verilen deger ile kafka'dan alınan deger beklendigi gibi degil"));
+    }
+
+    @DisplayName("Mongo ve Hazelcast Testi")
+    @Test
+    public void testMongoWithHazelcast(){
+        Person person = new Person("m", "m", 1);
+        employeeService.savePerson(person);
+        assertEquals(1, employeeCache.getMap().size());
     }
 
 }
