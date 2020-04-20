@@ -3,17 +3,20 @@ spring:
     stream:
       kafka:
         binder:
-          brokers: localhost:9092
+          brokers: localhost:9065
       bindings:
         person-topic-in:
-          destination: person-topic-test
+          destination: person-topic-test-
           contentType: application/json
           group: allIntegrationGroupId
         employee-topic-out:
-          destination: employee-topic-test
+          destination: employee-topic-test-
           contentType: application/json
   data:
     mongodb:
       host: localhost
       port: 4445
       database: test
+
+hazelcast:
+  addresses: localhost:5566

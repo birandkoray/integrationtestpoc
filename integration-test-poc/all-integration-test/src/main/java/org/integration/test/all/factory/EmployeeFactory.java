@@ -13,6 +13,7 @@ public class EmployeeFactory {
         String nickName = person.getName() + "-" + person.getSurname();
         employee.setNickName(nickName);
         employee.setSalary((long) (person.getAge() * 1000));
+        employee.setObjectId(person.getObjectId());
         return employee;
     }
 
@@ -20,6 +21,7 @@ public class EmployeeFactory {
         EmployeeDocument employeeDocument = new EmployeeDocument();
         employeeDocument.setNickName(employee.getNickName());
         employeeDocument.setSalary(employee.getSalary());
+        employeeDocument.setId(employee.getObjectId());
         return employeeDocument;
     }
 }

@@ -1,6 +1,7 @@
 package org.integration.test.all.service;
 
-import org.integration.test.all.cache.EmployeeCache;
+import org.integration.test.all.cacheAccessor.HazelcastMapAccessor;
+import org.integration.test.all.cacheKeys.CacheKeys;
 import org.integration.test.all.data.Employee;
 import org.integration.test.all.data.Person;
 import org.integration.test.all.document.EmployeeDocument;
@@ -18,11 +19,12 @@ public class EmployeeService {
 
     @Autowired
     private EmployeeFactory employeeFactory;
+
     @Autowired
     private EmployeeProducer employeeProducer;
 
     @Autowired
-    EmployeeCache cache;
+    private HazelcastMapAccessor hazelcastMapAccessor;
 
     public void savePerson(Person person) {
         Employee employee = employeeFactory.convertPersonToEmployeeData(person);
@@ -32,9 +34,8 @@ public class EmployeeService {
         EmployeeDocument empDoc = employeeRepository.save(employeeDocument);
 
         employee.setObjectId(empDoc.getId());
-        // employee datası cache'e yazilacak
-        // cache.save(employee);
-        cache.getMap().put(empDoc.getId(), person);
+
+        hazelcastMapAccessor.put(CacheKeys.PERSON_MAP, employee.getObjectId(), employee);
 
         employeeProducer.publishEmployee(employee);
 
@@ -76,11 +77,6 @@ public class EmployeeService {
         return personList;
     }
 
-
-    // Boyle bir methodun sonucunda process uzun surdugu icin
-    // transaction timeout'a ugrayip error throw eder.
-    // time out suresini artirmak icin mongoya asagidaki ayar verilmelidir:
-    // db.adminCommand( { setParameter: 1, transactionLifetimeLimitSeconds: 160 } )
     @Transactional
     public void savePersonLongProcess() throws InterruptedException {
         List<Person> personList = createDummyPersonList();

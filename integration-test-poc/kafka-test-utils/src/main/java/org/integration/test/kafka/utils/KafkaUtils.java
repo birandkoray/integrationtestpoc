@@ -1,4 +1,4 @@
-package org.integration.test.all;
+package org.integration.test.kafka.utils;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -11,7 +11,6 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.assertj.core.util.Lists;
 
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -22,15 +21,15 @@ import static java.util.Collections.singleton;
 import static org.apache.kafka.clients.consumer.ConsumerConfig.*;
 import static org.apache.kafka.clients.producer.ProducerConfig.*;
 
-abstract class AbstractEmbeddedKafka {
+public class KafkaUtils {
 
-    protected void sendMessage(String topic, String message, Map<String, Object> producerConfiguration) throws Exception {
+    public void sendMessage(String topic, String message, Map<String, Object> producerConfiguration) throws Exception {
         try (KafkaProducer<String, String> kafkaProducer = createProducer(producerConfiguration)) {
             kafkaProducer.send(new ProducerRecord<>(topic, message)).get();
         }
     }
 
-    protected void sendTransactionalMessage(String topic, String message, Map<String, Object> producerConfiguration) throws Exception {
+    public void sendTransactionalMessage(String topic, String message, Map<String, Object> producerConfiguration) throws Exception {
         try (KafkaProducer<String, String> kafkaProducer = createTransactionalProducer(producerConfiguration)) {
             kafkaProducer.beginTransaction();
             kafkaProducer.send(new ProducerRecord<>(topic, message)).get();
@@ -38,21 +37,21 @@ abstract class AbstractEmbeddedKafka {
         }
     }
 
-    protected String consumeMessage(String topic, Map<String, Object> consumerConfig) {
+    public String consumeMessage(String topic, Map<String, Object> consumerConfig) {
         return consumeMessages(topic, consumerConfig)
                 .stream()
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("no message received"));
     }
 
-    protected String consumeTransactionalMessage(String topic, Map<String, Object> consumerConfig) {
+    public String consumeTransactionalMessage(String topic, Map<String, Object> consumerConfig) {
         return consumeMessagesTransactional(topic, consumerConfig)
                 .stream()
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("no message received"));
     }
 
-    protected List<String> consumeMessages(String topic, Map<String, Object> consumerConfig) {
+    public List<String> consumeMessages(String topic, Map<String, Object> consumerConfig) {
         try (KafkaConsumer<String, String> consumer = createConsumer(topic, consumerConfig)) {
             return pollForRecords(consumer)
                     .stream()
@@ -61,7 +60,7 @@ abstract class AbstractEmbeddedKafka {
         }
     }
 
-    protected List<String> consumeMessagesTransactional(String topic, Map<String, Object> consumerConfig) {
+    public List<String> consumeMessagesTransactional(String topic, Map<String, Object> consumerConfig) {
         try (KafkaConsumer<String, String> consumer = createTransactionalConsumer(topic, consumerConfig)) {
             return pollForRecords(consumer)
                     .stream()
@@ -70,19 +69,19 @@ abstract class AbstractEmbeddedKafka {
         }
     }
 
-    protected KafkaProducer<String, String> createProducer(Map<String, Object> producerConfigs) {
+    public KafkaProducer<String, String> createProducer(Map<String, Object> producerConfigs) {
         Map<String, Object> producerConfiguration = getKafkaProducerConfiguration(producerConfigs);
         return new KafkaProducer<>(producerConfiguration);
     }
 
-    protected KafkaProducer<String, String> createTransactionalProducer(Map<String, Object> producerConfig) {
+    public KafkaProducer<String, String> createTransactionalProducer(Map<String, Object> producerConfig) {
         Map<String, Object> producerConfiguration = getKafkaTransactionalProducerConfiguration(producerConfig);
         KafkaProducer<String, String> kafkaProducer = new KafkaProducer<>(producerConfiguration);
         kafkaProducer.initTransactions();
         return kafkaProducer;
     }
 
-    protected KafkaConsumer<String, String> createConsumer(String topic, Map<String, Object> consumerConfig) {
+    public KafkaConsumer<String, String> createConsumer(String topic, Map<String, Object> consumerConfig) {
         Map<String, Object> consumerConfiguration = getKafkaConsumerConfiguration(consumerConfig);
         Properties properties = new Properties();
         properties.putAll(consumerConfiguration);
@@ -91,7 +90,7 @@ abstract class AbstractEmbeddedKafka {
         return consumer;
     }
 
-    protected KafkaConsumer<String, String> createTransactionalConsumer(String topic, Map<String, Object> consumerConfig) {
+    public KafkaConsumer<String, String> createTransactionalConsumer(String topic, Map<String, Object> consumerConfig) {
         Map<String, Object> consumerConfiguration = getKafkaTransactionalConsumerConfiguration(consumerConfig);
         Properties properties = new Properties();
         properties.putAll(consumerConfiguration);
@@ -100,12 +99,12 @@ abstract class AbstractEmbeddedKafka {
         return consumer;
     }
 
-    protected static <K, V> List<ConsumerRecord<K, V>> pollForRecords(KafkaConsumer<K, V> consumer) {
+    public static <K, V> List<ConsumerRecord<K, V>> pollForRecords(KafkaConsumer<K, V> consumer) {
         ConsumerRecords<K, V> received = consumer.poll(Duration.ofSeconds(5000));
         return received == null ? emptyList() : Lists.newArrayList(received);
     }
 
-    protected Map<String, Object> getKafkaProducerConfiguration(Map<String, Object> producerConfigs) {
+    public Map<String, Object> getKafkaProducerConfiguration(Map<String, Object> producerConfigs) {
         producerConfigs.put(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         producerConfigs.put(VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         producerConfigs.put(RETRIES_CONFIG, 0);
@@ -113,7 +112,7 @@ abstract class AbstractEmbeddedKafka {
         return producerConfigs;
     }
 
-    protected Map<String, Object> getKafkaTransactionalProducerConfiguration(Map<String, Object> producerConfiguration) {
+    public Map<String, Object> getKafkaTransactionalProducerConfiguration(Map<String, Object> producerConfiguration) {
         producerConfiguration.put(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         producerConfiguration.put(VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         producerConfiguration.put(BATCH_SIZE_CONFIG, 0);
@@ -127,15 +126,15 @@ abstract class AbstractEmbeddedKafka {
         return producerConfiguration;
     }
 
-    protected Map<String, Object> getKafkaConsumerConfiguration(Map<String, Object> consumerConfig) {
+    public Map<String, Object> getKafkaConsumerConfiguration(Map<String, Object> consumerConfig) {
         consumerConfig.put(GROUP_ID_CONFIG, "testGroup");
-        consumerConfig.put(AUTO_OFFSET_RESET_CONFIG, "earliest");
+        consumerConfig.put(AUTO_OFFSET_RESET_CONFIG, "latest");
         consumerConfig.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerConfig.put(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         return consumerConfig;
     }
 
-    protected Map<String, Object> getKafkaTransactionalConsumerConfiguration(Map<String, Object> consumerConfig) {
+    public Map<String, Object> getKafkaTransactionalConsumerConfiguration(Map<String, Object> consumerConfig) {
         consumerConfig.put(GROUP_ID_CONFIG, "testGroup");
         consumerConfig.put(AUTO_OFFSET_RESET_CONFIG, "earliest");
         consumerConfig.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
