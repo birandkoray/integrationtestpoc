@@ -46,4 +46,14 @@ public class EmployeeDocument {
     public void setId(String id) {
         this.id = id;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof EmployeeDocument)) return false;
+        EmployeeDocument that = (EmployeeDocument) o;
+        return getId().equals(that.getId()) &&
+                getSalary().equals(that.getSalary()) &&
+                getNickName().equals(that.getNickName());
+    }
 }

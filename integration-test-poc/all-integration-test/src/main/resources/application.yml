@@ -6,11 +6,11 @@ spring:
           brokers: localhost:9065
       bindings:
         person-topic-in:
-          destination: person-topic-test-
+          destination: person-topic-test--
           contentType: application/json
           group: allIntegrationGroupId
         employee-topic-out:
-          destination: employee-topic-test-
+          destination: employee-topic-test--
           contentType: application/json
   data:
     mongodb:

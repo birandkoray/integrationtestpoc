@@ -1,6 +1,7 @@
 package org.integration.test.all.listener;
 
 import org.integration.test.all.data.Person;
+import org.integration.test.all.data.UpdateTypeEnum;
 import org.integration.test.all.service.EmployeeService;
 import org.integration.test.all.stream.PersonStream;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,10 @@ public class PersonListener {
 
     @StreamListener(value = PersonStream.INPUT)
     private void personReceiverWithOutCondition(Person person) {
-        employeeService.savePerson(person);
+        if (person.getUpdateTypeEnum().equals(UpdateTypeEnum.DELETE_EMPLOYEE)) {
+            employeeService.deleteEmployee(person.getObjectId());
+        } else {
+            employeeService.saveOrUpdateEmployee(person);
+        }
     }
 }

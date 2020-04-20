@@ -1,6 +1,7 @@
 package org.integration.test.all.data;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class Employee implements Serializable {
 
@@ -42,5 +43,24 @@ public class Employee implements Serializable {
 
     public void setObjectId(String objectId) {
         this.objectId = objectId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Employee)) return false;
+        Employee employee = (Employee) o;
+        return Objects.equals(getObjectId(), employee.getObjectId()) &&
+                Objects.equals(getSalary(), employee.getSalary()) &&
+                Objects.equals(getNickName(), employee.getNickName());
+    }
+
+    @Override
+    public String toString() {
+        return "Employee{" +
+                "objectId='" + objectId + '\'' +
+                ", salary=" + salary +
+                ", nickName='" + nickName + '\'' +
+                '}';
     }
 }

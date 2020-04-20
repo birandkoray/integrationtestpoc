@@ -128,7 +128,7 @@ public class KafkaUtils {
 
     public Map<String, Object> getKafkaConsumerConfiguration(Map<String, Object> consumerConfig) {
         consumerConfig.put(GROUP_ID_CONFIG, "testGroup");
-        consumerConfig.put(AUTO_OFFSET_RESET_CONFIG, "latest");
+        consumerConfig.put(AUTO_OFFSET_RESET_CONFIG, "earliest");
         consumerConfig.put(KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerConfig.put(VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         return consumerConfig;

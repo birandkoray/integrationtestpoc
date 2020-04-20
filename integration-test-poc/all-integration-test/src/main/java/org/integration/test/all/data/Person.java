@@ -7,6 +7,7 @@ public class Person implements Serializable {
     private String objectId;
     private String name;
     private String surname;
+    private UpdateTypeEnum updateTypeEnum;
     private Integer age;
 
     public Person() {
@@ -28,6 +29,13 @@ public class Person implements Serializable {
         this.objectId = objectId;
         this.name = name;
         this.surname = surname;
+        this.age = age;
+    }
+
+    public Person(String name, String surname, UpdateTypeEnum updateTypeEnum, Integer age) {
+        this.name = name;
+        this.surname = surname;
+        this.updateTypeEnum = updateTypeEnum;
         this.age = age;
     }
 
@@ -61,5 +69,23 @@ public class Person implements Serializable {
 
     public void setObjectId(String objectId) {
         this.objectId = objectId;
+    }
+
+    public UpdateTypeEnum getUpdateTypeEnum() {
+        return updateTypeEnum;
+    }
+
+    public void setUpdateTypeEnum(UpdateTypeEnum updateTypeEnum) {
+        this.updateTypeEnum = updateTypeEnum;
+    }
+
+    @Override
+    public String toString() {
+        return "Person{" +
+                "objectId='" + objectId + '\'' +
+                ", name='" + name + '\'' +
+                ", surname='" + surname + '\'' +
+                ", age=" + age +
+                '}';
     }
 }

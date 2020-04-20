@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,7 +42,7 @@ public class HazelcastMapAccessor {
     }
 
     public Map getMap(String cacheName) {
-        return this.hazelcastClient.getMap(cacheName);
+        return new HashMap(this.hazelcastClient.getMap(cacheName));
     }
 
     public void putToList(String cacheName, Object item, int index) {

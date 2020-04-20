@@ -26,7 +26,7 @@ public class EmployeeService {
     @Autowired
     private HazelcastMapAccessor hazelcastMapAccessor;
 
-    public void savePerson(Person person) {
+    public void saveOrUpdateEmployee(Person person) {
         Employee employee = employeeFactory.convertPersonToEmployeeData(person);
 
 
@@ -39,6 +39,11 @@ public class EmployeeService {
 
         employeeProducer.publishEmployee(employee);
 
+    }
+
+    public void deleteEmployee(String id) {
+        employeeRepository.deleteById(id);
+        hazelcastMapAccessor.delete(CacheKeys.PERSON_MAP, id);
     }
 
     /*@Transactional
