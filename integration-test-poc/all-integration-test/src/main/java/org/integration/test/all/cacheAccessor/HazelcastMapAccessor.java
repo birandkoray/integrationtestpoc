@@ -42,7 +42,7 @@ public class HazelcastMapAccessor {
     }
 
     public Map getMap(String cacheName) {
-        return new HashMap(this.hazelcastClient.getMap(cacheName));
+        return this.hazelcastClient.getMap(cacheName);
     }
 
     public void putToList(String cacheName, Object item, int index) {

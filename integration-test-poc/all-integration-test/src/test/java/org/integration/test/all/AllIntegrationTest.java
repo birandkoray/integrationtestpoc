@@ -22,6 +22,7 @@ import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.util.SocketUtils;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -68,7 +69,7 @@ public class AllIntegrationTest {
     }
 
     @AfterAll
-    public static void destroy(){
+    public static void destroy() {
         hazelcastInstance.shutdown();
     }
 
@@ -100,26 +101,24 @@ public class AllIntegrationTest {
                 () -> assertTrue(() -> employeeDocumentList.size() == 1, "Db'den gelen employee Listesi beklenen deger degil..."),
                 () -> assertFalse(() -> employeeDocumentList.stream().anyMatch(employeeDocument1 -> employeeDocument1.getId() == null)
                         , "Id atanmamis document'lar bulunmakta. DB'ye kaydedilmemis olabilir"),
+                () -> assertNotNull(hazelcastUtils, "Hazelcast Utils dolu degil"),
+                () -> assertNotNull(hazelcastInstance, "Hazelcast Instance dolu degil"),
+                () -> assertNotNull(employeeMap1, "HazelcastInstance uzerindeki map null"),
+                () -> assertNotNull(employeeMap2, "HazelcastMapAccessor uzerindeki map null"),
                 () -> assertTrue(employeeMap1.size() > 0, "Cache dolu degil"),
                 () -> assertTrue(employeeMap2.size() > 0, "Cache dolu degil")
         );
-
-        //hazelcast tests
-        assertNotNull(hazelcastUtils, "Hazelcast Utils dolu degil");
-        assertNotNull(hazelcastInstance, "Hazelcast Instance dolu degil");
-        assertNotNull(employeeMap1, "HazelcastInstance uzerindeki map null");
-        assertNotNull(employeeMap2, "HazelcastMapAccessor uzerindeki map null");
-
-        assertTrue(employeeMap1.size() > 0, "Cache dolu degil");
-        assertTrue(employeeMap2.size() > 0, "Cache dolu degil");
 
         assertAll("Check equality test",
                 () -> assertEquals(employee.getNickName(), employeeMap1.get(employee.getObjectId()).getNickName()),
                 () -> assertEquals(employee.getNickName(), employeeMap2.get(employee.getObjectId()).getNickName())
         );
 
+
+        //hazelcast tests
+        /* BURADAKI CLEAR ISLEMI SONRAKI UPDATE , DELETE ETKILEDIGI ICIN COMMENTE ALINDI
         hazelcastInstance.getMap(CacheKeys.PERSON_MAP).clear();
-        hazelcastMapAccessor.getMap(CacheKeys.PERSON_MAP).clear();
+        hazelcastMapAccessor.clearCache(CacheKeys.PERSON_MAP);
 
         assertTrue(employeeMap1.size() == 0, "HazelcastInstance uzerindeki map null degil");
         assertTrue(employeeMap2.size() == 0, "HazelcastMapAccessor uzerindeki map null degil");
@@ -137,6 +136,7 @@ public class AllIntegrationTest {
 
         assertEquals(employeeMap1.size(), 0);
         assertEquals(employeeMap2.size(), 0);
+        */
     }
 
 
@@ -150,7 +150,7 @@ public class AllIntegrationTest {
         EmployeeDocument employeeDocument = employeeDocumentList.stream().findFirst()
                 .orElseThrow(() -> new IllegalStateException("Employee Document Bos"));
 
-        Map<String, Employee> employeeMap = hazelcastMapAccessor.getMap(CacheKeys.PERSON_MAP);
+        Map<String, Employee> employeeMap = new HashMap<>(hazelcastMapAccessor.getMap(CacheKeys.PERSON_MAP));
 
         Person person = new Person("TestAdUpdate", "TestSoyadUpdate", UpdateTypeEnum.UPDATE_EMPLOYEE, 30);
         person.setObjectId(employeeDocument.getId());
