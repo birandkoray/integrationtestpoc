@@ -8,12 +8,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.util.SocketUtils;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
@@ -21,10 +22,20 @@ import java.net.URI;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@TestPropertySource(locations = "classpath:application.yml")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class MongoIntegrationTest {
 
     private MongoTemplate mongoTemplate;
+
+    @Value("${spring.data.mongodb.host}")
+    private String mongoServer;
+
+    @Value("${spring.data.mongodb.port}")
+    private int mongoPort;
+
+    @Value("${server.port}")
+    private int serverPort;
 
     @Autowired
     private PersonService personService;
@@ -32,29 +43,18 @@ public class MongoIntegrationTest {
     @Autowired
     private PersonRepository personRepository;
 
-    private static int randomPort;
-
-    private static String IP = "localhost";
-
-    private static String REST_PORT = "8085";
-
     @BeforeAll
     public static void setUpBeforeClass() {
-        randomPort = SocketUtils.findAvailableTcpPort();
-        System.setProperty("server.port", REST_PORT);
-        System.setProperty("spring.data.mongodb.port", String.valueOf(randomPort));
-        System.setProperty("spring.data.mongodb.host", "localhost");
-        System.setProperty("spring.data.mongodb.auto-index-creation", "true");
     }
 
     @Test
     @DisplayName("testRestSave")
     void testRestSave() throws Exception {
         // given
-        mongoTemplate = new MongoTemplate(new MongoClient(IP, randomPort), "test");
+        mongoTemplate = new MongoTemplate(new MongoClient(mongoServer, mongoPort), "test");
 
         // when
-        final String baseUrl = "http://localhost:" + REST_PORT + "/person-save/savePerson";
+        final String baseUrl = "http://localhost:" + serverPort + "/person-save/savePerson";
         URI uri = new URI(baseUrl);
 
         HttpHeaders headers = new HttpHeaders();
