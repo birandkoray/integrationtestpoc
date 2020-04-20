@@ -22,8 +22,7 @@ import org.springframework.util.SocketUtils;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @EmbeddedKafka(partitions = 1)
@@ -63,6 +62,11 @@ public class AllIntegrationTest {
         System.setProperty("spring.data.mongodb.auto-index-creation", "true");
     }
 
+    @AfterAll
+    public static void destroy(){
+        hazelcastInstance.shutdown();
+    }
+
     @Test
     @DisplayName("Kafka, Database ve Hazelcast Testi. Employee Add")
     public void addEmployeeTest() throws Exception {
@@ -92,10 +96,42 @@ public class AllIntegrationTest {
                         }
                     }
                     return true;
-                }, "Id atanmamis document'lar bulunmakta. DB'ye kaydedilmemis olabilir"),
-                () -> assertTrue(employeeMap1.size() > 0, "Cache dolu degil"),
-                () -> assertTrue(employeeMap2.size() > 0, "Cache dolu degil")
+                }, "Id atanmamis document'lar bulunmakta. DB'ye kaydedilmemis olabilir")
         );
+
+        //hazelcast tests
+        assertNotNull(hazelcastUtils, "Hazelcast Utils dolu degil");
+        assertNotNull(hazelcastInstance, "Hazelcast Instance dolu degil");
+        assertNotNull(employeeMap1, "HazelcastInstance uzerindeki map null");
+        assertNotNull(employeeMap2, "HazelcastMapAccessor uzerindeki map null");
+
+        assertTrue(employeeMap1.size() > 0, "Cache dolu degil");
+        assertTrue(employeeMap2.size() > 0, "Cache dolu degil");
+
+        assertAll("Check equality test",
+                () -> assertEquals(employee.getNickName(), employeeMap1.get(employee.getObjectId()).getNickName()),
+                () -> assertEquals(employee.getNickName(), employeeMap2.get(employee.getObjectId()).getNickName())
+        );
+
+        hazelcastInstance.getMap(CacheKeys.PERSON_MAP).clear();
+        hazelcastMapAccessor.getMap(CacheKeys.PERSON_MAP).clear();
+
+        assertTrue(employeeMap1.size() == 0, "HazelcastInstance uzerindeki map null degil");
+        assertTrue(employeeMap2.size() == 0, "HazelcastMapAccessor uzerindeki map null degil");
+
+        int testSize = 1000;
+        for (int i = 0; i < testSize; i++) {
+            //coklu ekleme icin key degistirildi
+            hazelcastMapAccessor.put(CacheKeys.PERSON_MAP, i, employee);
+        }
+
+        assertEquals(employeeMap1.size(), testSize);
+        assertEquals(employeeMap2.size(), testSize);
+
+        hazelcastInstance.getMap(CacheKeys.PERSON_MAP).destroy();
+
+        assertEquals(employeeMap1.size(), 0);
+        assertEquals(employeeMap2.size(), 0);
     }
 
 }
