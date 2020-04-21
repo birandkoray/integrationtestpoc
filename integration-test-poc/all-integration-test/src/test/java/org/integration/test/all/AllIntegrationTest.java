@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AllIntegrationTest {
 
-    private Logger logger = LogManager.getLogger(AllIntegrationTest.class);
+    private static Logger logger = LogManager.getLogger(AllIntegrationTest.class);
 
     private static final String IP = "localhost";
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -56,6 +56,8 @@ public class AllIntegrationTest {
 
     @BeforeAll
     public static void setUpBeforeAll() {
+
+        logger.debug("START OF BEFORE ALL");
         kafkaUtils = new KafkaUtils();
         hazelcastUtils = new HazelcastUtils();
         randomMongoPort = SocketUtils.findAvailableTcpPort();
@@ -66,6 +68,7 @@ public class AllIntegrationTest {
         System.setProperty("spring.data.mongodb.port", String.valueOf(randomMongoPort));
         System.setProperty("spring.data.mongodb.host", IP);
         System.setProperty("spring.data.mongodb.auto-index-creation", "true");
+        logger.debug("END OF BEFORE ALL");
     }
 
     @AfterAll
@@ -114,29 +117,6 @@ public class AllIntegrationTest {
                 () -> assertEquals(employee.getNickName(), employeeMap2.get(employee.getObjectId()).getNickName())
         );
 
-
-        //hazelcast tests
-        /* BURADAKI CLEAR ISLEMI SONRAKI UPDATE , DELETE ETKILEDIGI ICIN COMMENTE ALINDI
-        hazelcastInstance.getMap(CacheKeys.PERSON_MAP).clear();
-        hazelcastMapAccessor.clearCache(CacheKeys.PERSON_MAP);
-
-        assertTrue(employeeMap1.size() == 0, "HazelcastInstance uzerindeki map null degil");
-        assertTrue(employeeMap2.size() == 0, "HazelcastMapAccessor uzerindeki map null degil");
-
-        int testSize = 1000;
-        for (int i = 0; i < testSize; i++) {
-            //coklu ekleme icin key degistirildi
-            hazelcastMapAccessor.put(CacheKeys.PERSON_MAP, i, employee);
-        }
-
-        assertEquals(employeeMap1.size(), testSize);
-        assertEquals(employeeMap2.size(), testSize);
-
-        hazelcastInstance.getMap(CacheKeys.PERSON_MAP).destroy();
-
-        assertEquals(employeeMap1.size(), 0);
-        assertEquals(employeeMap2.size(), 0);
-        */
     }
 
 
@@ -205,6 +185,43 @@ public class AllIntegrationTest {
 
         assertTrue(() -> employeeDocumentList.size() >= lastEmployeeDocumentList.size(), "Employee Silinmemis");
 
+
+    }
+
+    @Test
+    @DisplayName("Kafka, Database ve Hazelcast Testi. Delete Employee")
+    @Order(4)
+    public void testHazelcastMethods() throws Exception {
+
+        //hazelcast tests
+        Person person = new Person("99999999999999999","TestAd", "TestSoyad", 20);
+        hazelcastMapAccessor.put(CacheKeys.PERSON_MAP, person.getObjectId(), person);
+
+        Map<String, Employee> mapOfInstance = hazelcastInstance.getMap(CacheKeys.PERSON_MAP);
+        Map<String, Employee> mapOfAccessor = hazelcastMapAccessor.getMap(CacheKeys.PERSON_MAP);
+        assertNotNull(mapOfInstance, "HazelcastInstance uzerindeki map null");
+        assertNotNull(mapOfAccessor, "HazelcastMapAccessor uzerindeki map null");
+
+        hazelcastInstance.getMap(CacheKeys.PERSON_MAP).clear();
+        hazelcastMapAccessor.clearCache(CacheKeys.PERSON_MAP);
+
+        assertTrue(mapOfInstance.size() == 0, "HazelcastInstance uzerindeki map null degil");
+        assertTrue(mapOfAccessor.size() == 0, "HazelcastMapAccessor uzerindeki map null degil");
+
+        Person dummyPerson = new Person("TestAd", "TestSoyad", UpdateTypeEnum.ADD_EMPLOYEE, 20);
+        int testSize = 1000;
+        for (int i = 0; i < testSize; i++) {
+            //coklu ekleme icin key degistirildi
+            hazelcastMapAccessor.put(CacheKeys.PERSON_MAP, i, dummyPerson);
+        }
+
+        assertEquals(mapOfInstance.size(), testSize);
+        assertEquals(mapOfAccessor.size(), testSize);
+
+        hazelcastInstance.getMap(CacheKeys.PERSON_MAP).destroy();
+
+        assertEquals(mapOfInstance.size(), 0);
+        assertEquals(mapOfAccessor.size(), 0);
 
     }
 }
