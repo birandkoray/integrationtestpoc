@@ -39,14 +39,11 @@ public class EmployeeService {
 
     private BulkOperations employeeBulkOperations;
 
-    @Transactional
     public String saveOrUpdateEmployee(Person person) {
         Employee employee = employeeFactory.convertPersonToEmployeeData(person);
 
-
         EmployeeDocument employeeDocument = employeeFactory.convertEmployeeToEmployeeDocument(employee);
         EmployeeDocument empDoc = employeeRepository.save(employeeDocument);
-
         employee.setObjectId(empDoc.getId());
 
         hazelcastMapAccessor.put(CacheKeys.PERSON_MAP, employee.getObjectId(), employee);
@@ -79,9 +76,6 @@ public class EmployeeService {
             employeeMap.put(employee.getObjectId(), employee);
         });
         employeeBulkOperations.execute();
-        if(true) {
-            throw new RuntimeException();
-        }
         return employeeMap;
     }
 
