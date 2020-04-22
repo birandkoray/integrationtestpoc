@@ -23,6 +23,10 @@ import static org.apache.kafka.clients.producer.ProducerConfig.*;
 
 public class KafkaUtils {
 
+    public void setSystemProperty() {
+        System.setProperty("spring.cloud.stream.kafka.binder.brokers", "${spring.embedded.kafka.brokers}");
+    }
+
     public void sendMessage(String topic, String message, Map<String, Object> producerConfiguration) throws Exception {
         try (KafkaProducer<String, String> kafkaProducer = createProducer(producerConfiguration)) {
             kafkaProducer.send(new ProducerRecord<>(topic, message)).get();

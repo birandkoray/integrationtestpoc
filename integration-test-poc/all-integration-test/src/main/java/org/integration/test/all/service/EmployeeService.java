@@ -76,6 +76,9 @@ public class EmployeeService {
             employeeMap.put(employee.getObjectId(), employee);
         });
         employeeBulkOperations.execute();
+        if(true) {
+            throw new RuntimeException();
+        }
         return employeeMap;
     }
 
