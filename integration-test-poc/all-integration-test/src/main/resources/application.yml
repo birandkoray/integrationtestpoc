@@ -3,7 +3,12 @@ spring:
     stream:
       kafka:
         binder:
-          brokers: localhost:9065
+          brokers: localhost:9092
+          configuration:
+            max.poll.records: 10
+            fetch.min.bytes: 3000
+            fetch.max.wait.ms: 3000
+            value.deserializer: org.integration.test.all.deserializer.PersonDeserializer
       bindings:
         person-topic-in:
           destination: person-topic-test--
@@ -12,6 +17,12 @@ spring:
         employee-topic-out:
           destination: employee-topic-test--
           contentType: application/json
+        person-transaction-topic-in:
+          destination: person-transaction-topic
+          contentType: application/json
+          group: allIntegrationGroupId
+          consumer:
+            batch-mode: true
   data:
     mongodb:
       host: localhost

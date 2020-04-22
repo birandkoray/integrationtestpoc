@@ -9,7 +9,15 @@ import org.integration.test.all.factory.EmployeeFactory;
 import org.integration.test.all.producer.EmployeeProducer;
 import org.integration.test.all.repository.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.BulkOperations;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 @Service
 public class EmployeeService {
@@ -26,7 +34,13 @@ public class EmployeeService {
     @Autowired
     private HazelcastMapAccessor hazelcastMapAccessor;
 
-    public void saveOrUpdateEmployee(Person person) {
+    @Autowired
+    private MongoTemplate mongoTemplate;
+
+    private BulkOperations employeeBulkOperations;
+
+    @Transactional
+    public String saveOrUpdateEmployee(Person person) {
         Employee employee = employeeFactory.convertPersonToEmployeeData(person);
 
 
@@ -38,12 +52,37 @@ public class EmployeeService {
         hazelcastMapAccessor.put(CacheKeys.PERSON_MAP, employee.getObjectId(), employee);
 
         employeeProducer.publishEmployee(employee);
-
+        return employeeDocument.getId();
     }
 
     public void deleteEmployee(String id) {
         employeeRepository.deleteById(id);
         hazelcastMapAccessor.delete(CacheKeys.PERSON_MAP, id);
+    }
+
+    @Transactional
+    public void saveTransactionalEmployee(List<Person> personList) {
+        employeeBulkOperations = mongoTemplate.bulkOps(BulkOperations.BulkMode.ORDERED, EmployeeDocument.class);
+        Map<String, Employee> employeeMap = saveEmployeeListToDb(personList);
+        hazelcastMapAccessor.putAll(CacheKeys.PERSON_MAP, employeeMap);
+        employeeMap.entrySet().parallelStream().forEach(employee -> employeeProducer.publishEmployee(employee.getValue()));
+    }
+
+
+    private Map<String, Employee> saveEmployeeListToDb(List<Person> personList) {
+        Map<String, Employee> employeeMap = new HashMap<>();
+        personList.stream().forEach((person) -> {
+            person.setObjectId(String.valueOf(new Random().nextInt(999999999)));
+            Employee employee = employeeFactory.convertPersonToEmployeeData(person);
+            EmployeeDocument employeeDocument = employeeFactory.convertEmployeeToEmployeeDocument(employee);
+            employeeBulkOperations.insert(employeeDocument);
+            employeeMap.put(employee.getObjectId(), employee);
+        });
+        employeeBulkOperations.execute();
+        if(true) {
+            throw new RuntimeException();
+        }
+        return employeeMap;
     }
 
     /*@Transactional

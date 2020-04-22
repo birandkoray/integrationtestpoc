@@ -56,7 +56,6 @@ public class AllIntegrationTest {
 
     @BeforeAll
     public static void setUpBeforeAll() {
-
         logger.debug("START OF BEFORE ALL");
         kafkaUtils = new KafkaUtils();
         hazelcastUtils = new HazelcastUtils();
@@ -84,7 +83,7 @@ public class AllIntegrationTest {
 
         mongoTemplate = new MongoTemplate(MongoClients.create("mongodb://" + IP + ":" + randomMongoPort), "test");
 
-        Person person = new Person("TestAd", "TestSoyad", UpdateTypeEnum.ADD_EMPLOYEE, 20);
+        Person person = new Person("TestAd", "TestSoyad", 20, UpdateTypeEnum.ADD_EMPLOYEE);
         kafkaUtils.sendMessage(OUTPUT_TOPIC, objectMapper.writeValueAsString(person), KafkaTestUtils.producerProps(embeddedKafkaBroker));
 
 
@@ -132,7 +131,7 @@ public class AllIntegrationTest {
 
         Map<String, Employee> employeeMap = new HashMap<>(hazelcastMapAccessor.getMap(CacheKeys.PERSON_MAP));
 
-        Person person = new Person("TestAdUpdate", "TestSoyadUpdate", UpdateTypeEnum.UPDATE_EMPLOYEE, 30);
+        Person person = new Person("TestAdUpdate", "TestSoyadUpdate", 30, UpdateTypeEnum.UPDATE_EMPLOYEE);
         person.setObjectId(employeeDocument.getId());
         kafkaUtils.sendMessage(OUTPUT_TOPIC, objectMapper.writeValueAsString(person), KafkaTestUtils.producerProps(embeddedKafkaBroker));
 
@@ -175,7 +174,7 @@ public class AllIntegrationTest {
                 .orElseThrow(() -> new IllegalStateException("Employee Document Bos"));
 
 
-        Person person = new Person(null, null, UpdateTypeEnum.DELETE_EMPLOYEE, null);
+        Person person = new Person(null, null, null, UpdateTypeEnum.DELETE_EMPLOYEE);
         person.setObjectId(employeeDocument.getId());
         kafkaUtils.sendMessage(OUTPUT_TOPIC, objectMapper.writeValueAsString(person), KafkaTestUtils.producerProps(embeddedKafkaBroker));
 
@@ -194,7 +193,7 @@ public class AllIntegrationTest {
     public void testHazelcastMethods() throws Exception {
 
         //hazelcast tests
-        Person person = new Person("99999999999999999","TestAd", "TestSoyad", 20);
+        Person person = new Person("99999999999999999", "TestAd", "TestSoyad", 20);
         hazelcastMapAccessor.put(CacheKeys.PERSON_MAP, person.getObjectId(), person);
 
         Map<String, Employee> mapOfInstance = hazelcastInstance.getMap(CacheKeys.PERSON_MAP);
@@ -208,7 +207,7 @@ public class AllIntegrationTest {
         assertTrue(mapOfInstance.size() == 0, "HazelcastInstance uzerindeki map null degil");
         assertTrue(mapOfAccessor.size() == 0, "HazelcastMapAccessor uzerindeki map null degil");
 
-        Person dummyPerson = new Person("TestAd", "TestSoyad", UpdateTypeEnum.ADD_EMPLOYEE, 20);
+        Person dummyPerson = new Person("TestAd", "TestSoyad", 20, UpdateTypeEnum.ADD_EMPLOYEE);
         int testSize = 1000;
         for (int i = 0; i < testSize; i++) {
             //coklu ekleme icin key degistirildi

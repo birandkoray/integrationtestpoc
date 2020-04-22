@@ -32,7 +32,7 @@ public class Person implements Serializable {
         this.age = age;
     }
 
-    public Person(String name, String surname, UpdateTypeEnum updateTypeEnum, Integer age) {
+    public Person(String name, String surname, Integer age, UpdateTypeEnum updateTypeEnum) {
         this.name = name;
         this.surname = surname;
         this.updateTypeEnum = updateTypeEnum;

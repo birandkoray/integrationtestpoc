@@ -63,13 +63,19 @@
         <dependency>
             <groupId>org.integration.test</groupId>
             <artifactId>hazelcast-test-utils</artifactId>
-            <version>1.0</version>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.integration.test</groupId>
             <artifactId>kafka-test-utils</artifactId>
-            <version>1.0</version>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.integration.test</groupId>
+            <artifactId>mongo-test-utils</artifactId>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

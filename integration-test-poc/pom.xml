@@ -17,6 +17,7 @@
         <module>all-integration-test</module>
         <module>hazelcast-test-utils</module>
         <module>kafka-test-utils</module>
+        <module>mongo-test-utils</module>
     </modules>
 
 

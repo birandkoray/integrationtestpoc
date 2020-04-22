@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class PersonListener {
 
@@ -21,5 +23,10 @@ public class PersonListener {
         } else {
             employeeService.saveOrUpdateEmployee(person);
         }
+    }
+
+    @StreamListener(value = PersonStream.TRANSACTION_INPUT)
+    private void personReceiverWithTransaction(List<Person> personList) {
+        employeeService.saveTransactionalEmployee(personList);
     }
 }

@@ -100,7 +100,7 @@ public class KafkaUtils {
     }
 
     public static <K, V> List<ConsumerRecord<K, V>> pollForRecords(KafkaConsumer<K, V> consumer) {
-        ConsumerRecords<K, V> received = consumer.poll(Duration.ofSeconds(5000));
+        ConsumerRecords<K, V> received = consumer.poll(Duration.ofSeconds(15));
         return received == null ? emptyList() : Lists.newArrayList(received);
     }
 
